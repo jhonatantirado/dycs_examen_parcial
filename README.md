@@ -7,7 +7,7 @@ Construir endpoint(s) donde se aplique lo siguiente:
 - Specification Pattern (OK): /v1/customers?peruvianOnly=true
 - Send messages to rabbitmq (OK): KipubitRabbitMQ.SendMessage(message) envía a net-core-job-background en Pivotal
 - Process messages from rabbitmq
-- Domain Model Pattern
+- Domain Model Pattern (OK): DepotOrder.ValidateDepotOrder()
 - Money Pattern (OK)
 - Value Object Pattern (OK): Money es un Value Object
 - Data Transfer Object Pattern (OK)
