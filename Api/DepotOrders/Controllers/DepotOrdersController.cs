@@ -14,12 +14,13 @@ using EnterprisePatterns.Api.DepotOrders.Application.Dto;
 using DepotSystem.Api.Common.Application.Enum;
 using DepotSystem.Api.DepotOrders.Application.Validations;
 using DepotSystem.API.Application.Response;
+using DepotSystem.API.Controllers;
 
 namespace EnterprisePatterns.Api.DepotOrders.Controllers
 {
     [Route("v1/depotorders")]
     [ApiController]
-    public class DepotOrdersController: ControllerBase{
+    public class DepotOrdersController: BaseController{
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICustomerRepository _customerRepository;
         private readonly IDepotOrderRepository _depotOrderRepository;
@@ -60,15 +61,10 @@ namespace EnterprisePatterns.Api.DepotOrders.Controllers
             try
             {
                 var notification = _depotOrderDtoValidator.Validate(depotOrderDto);
-                if (notification.hasErrors())
-                {
-                    return StatusCode(StatusCodes.Status400BadRequest, _apiResponseHandler.AppErrorResponse(notification.errorMessage()));
-                }
+                throwErrors(notification);
 
                 uowStatus = _unitOfWork.BeginTransaction();
-
                 var customer = _customerAssembler.FromDepotOrderDtoToCustomer(depotOrderDto);
-
                 Customer searchCustomer = _customerRepository.GetByIdentificationNumber(depotOrderDto.CustomerIdentificationNumber);
 
                 if (searchCustomer.Equals(null))
@@ -77,12 +73,14 @@ namespace EnterprisePatterns.Api.DepotOrders.Controllers
                 }
 
                 DepotOrder depotOrder = _depotOrderAssembler.FromDepotOrderDtoToDepotOrder(depotOrderDto);
-                Port _port = (Port) Enum.Parse(typeof(Port), depotOrderDto.PortISOCode);
-                depotOrder.PortId = (long) _port;
+                Port _port = (Port)Enum.Parse(typeof(Port), depotOrderDto.PortISOCode);
+                depotOrder.PortId = (long)_port;
 
                 depotOrder.Customer = searchCustomer;
-                OceanCarrier _oceanCarrier = (OceanCarrier) Enum.Parse(typeof(OceanCarrier), depotOrderDto.OceanCarrierSCACCode);
-                depotOrder.OceanCarrierId = (long) _oceanCarrier;
+                OceanCarrier _oceanCarrier = (OceanCarrier)Enum.Parse(typeof(OceanCarrier), depotOrderDto.OceanCarrierSCACCode);
+                depotOrder.OceanCarrierId = (long)_oceanCarrier;
+                depotOrder.ValidateDepotOrder(notification);
+                throwErrors(notification);
                 _depotOrderRepository.Create(depotOrder);
 
                 List<DepotOrderEquipment> depotOrderEquipments = _depotOrderEquipmentAssembler.ToEntityList(depotOrderDto.Equipments);
@@ -93,6 +91,13 @@ namespace EnterprisePatterns.Api.DepotOrders.Controllers
                 var message = "DepotOrder created!";
                 KipubitRabbitMQ.SendMessage(message);
                 return StatusCode(StatusCodes.Status201Created, new ApiStringResponseDto(message));
+            }
+            catch (ArgumentException ex)
+            {
+                _unitOfWork.Rollback(uowStatus);
+                Console.WriteLine(ex.StackTrace);
+                KipubitRabbitMQ.SendMessage(ex.StackTrace);
+                return BadRequest(_apiResponseHandler.AppErrorResponse(ex.Message));
             }
             catch (Exception ex)
             {
