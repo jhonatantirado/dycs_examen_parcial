@@ -1,0 +1,6 @@
+---
+applications:
+- name: dycs-examen-parcial
+  memory: 256M
+  instances: 1
+  random-route: true
