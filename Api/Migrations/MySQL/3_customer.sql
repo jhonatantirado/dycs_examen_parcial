@@ -11,3 +11,19 @@ INSERT INTO customer (name,identification_number)
 SELECT 'Ripley S.A.','20101010101'
 UNION
 SELECT 'Saga Falabella S.A.','20202020202'
+UNION
+SELECT 'Gloria del Peru','20202020203'
+UNION
+SELECT 'Aceros del Peru','20202020204'
+UNION
+SELECT 'Policia Nacional del Peru','20202020205'
+UNION
+SELECT 'Bomberos Voluntarios del Peru','20202020206'
+UNION
+SELECT 'IBM','20202020207'
+UNION
+SELECT 'Microsoft Peru','20202020208'
+UNION
+SELECT 'Alicorp','20202020209'
+UNION
+SELECT 'UNMSM','20202020210'

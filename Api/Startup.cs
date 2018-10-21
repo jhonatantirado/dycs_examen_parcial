@@ -10,10 +10,6 @@ using EnterprisePatterns.Api.Customers.Infrastructure.Persistence.NHibernate.Rep
 using AutoMapper;
 using EnterprisePatterns.Api.Common.Application;
 using EnterprisePatterns.Api.Customers.Application.Assembler;
-using EnterprisePatterns.Api.Users.Domain.Repository;
-using EnterprisePatterns.Api.Users.Infrastructure.Persistence.NHibernate.Repository;
-using EnterprisePatterns.Api.Projects.Domain.Repository;
-using EnterprisePatterns.Api.Projects.Infrastructure.Persistence.NHibernate.Repository;
 using EnterprisePatterns.Api.DepotOrders.Application.Assembler;
 using EnterprisePatterns.Api.DepotOrders.Domain.Repository;
 using EnterprisePatterns.Api.DepotOrders.Infrastructure.Persistence.NHibernate.Repository;
@@ -39,8 +35,6 @@ namespace EnterprisePatterns.Api
             var serviceProvider = services.BuildServiceProvider();
             var mapper = serviceProvider.GetService<IMapper>();
             services.AddSingleton(new CustomerAssembler(mapper));
-            services.AddSingleton(new UserAssembler(mapper));
-            services.AddSingleton(new ProjectAssembler(mapper));
             services.AddSingleton(new DepotOrderAssembler(mapper));
             services.AddSingleton(new DepotOrderEquipmentAssembler(mapper));
             services.AddSingleton<DepotOrderDtoValidator>();
@@ -51,16 +45,6 @@ namespace EnterprisePatterns.Api
             {
                 IUnitOfWork unitOfWork = ctx.GetService<IUnitOfWork>();
                 return new CustomerNHibernateRepository((UnitOfWorkNHibernate)unitOfWork);
-            });
-            services.AddTransient<IUserRepository, UserNHibernateRepository>((ctx) =>
-            {
-                IUnitOfWork unitOfWork = ctx.GetService<IUnitOfWork>();
-                return new UserNHibernateRepository((UnitOfWorkNHibernate)unitOfWork);
-            });
-            services.AddTransient<IProjectRepository, ProjectNHibernateRepository>((ctx) =>
-            {
-                IUnitOfWork unitOfWork = ctx.GetService<IUnitOfWork>();
-                return new ProjectNHibernateRepository((UnitOfWorkNHibernate)unitOfWork);
             });
             services.AddTransient<IDepotOrderRepository, DepotOrderNHibernateRepository>((ctx) =>
             {
