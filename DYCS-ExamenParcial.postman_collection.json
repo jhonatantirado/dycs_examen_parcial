@@ -12,12 +12,13 @@
 				"header": [],
 				"body": {},
 				"url": {
-					"raw": "https://localhost:44313/v1/customers?peruvianOnly=true&page=0&size=5",
+					"raw": "https://dycs-examen-parcial-funny-serval.cfapps.io/v1/customers?peruvianOnly=true&page=0&size=5",
 					"protocol": "https",
 					"host": [
-						"localhost"
+						"dycs-examen-parcial-funny-serval",
+						"cfapps",
+						"io"
 					],
-					"port": "44313",
 					"path": [
 						"v1",
 						"customers"
@@ -52,15 +53,16 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n\t\"DocumentNumber\": \"HLCU2018102102\",\r\n\t\"RequestDate\": \"2018-10-21\",\r\n\t\"PortISOCode\": \"PECLL\",\r\n\t\"CustomerIdentificationNumber\": \"20101010101\",\r\n\t\"OceanCarrierSCACCode\": \"HLCU\",\r\n\t\"TotalAmount\": 1000.00,\r\n\t\"CurrencyISOCode\": \"USD\",\r\n\t\"Equipments\":[\r\n\t\t{\r\n\t\t\"EquipmentNumber\": \"CAXU0000004\"\r\n\t\t},\r\n\t\t{\r\n\t\t\"EquipmentNumber\": \"ROXU0000004\"\r\n\t\t}\r\n\t]\r\n}"
+					"raw": "{\r\n\t\"DocumentNumber\": \"HLCU2018102105\",\r\n\t\"RequestDate\": \"2018-10-21\",\r\n\t\"PortISOCode\": \"PECLL\",\r\n\t\"CustomerIdentificationNumber\": \"20101010101\",\r\n\t\"OceanCarrierSCACCode\": \"HLCU\",\r\n\t\"TotalAmount\": 1000.00,\r\n\t\"CurrencyISOCode\": \"USD\",\r\n\t\"Equipments\":[\r\n\t\t{\r\n\t\t\"EquipmentNumber\": \"CAXU0000004\"\r\n\t\t},\r\n\t\t{\r\n\t\t\"EquipmentNumber\": \"ROXU0000004\"\r\n\t\t}\r\n\t]\r\n}"
 				},
 				"url": {
-					"raw": "https://localhost:44313/v1/depotorders",
+					"raw": "https://dycs-examen-parcial-funny-serval.cfapps.io/v1/depotorders",
 					"protocol": "https",
 					"host": [
-						"localhost"
+						"dycs-examen-parcial-funny-serval",
+						"cfapps",
+						"io"
 					],
-					"port": "44313",
 					"path": [
 						"v1",
 						"depotorders"
