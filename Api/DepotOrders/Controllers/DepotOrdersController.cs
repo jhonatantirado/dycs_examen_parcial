@@ -15,6 +15,7 @@ using DepotSystem.Api.Common.Application.Enum;
 using DepotSystem.Api.DepotOrders.Application.Validations;
 using DepotSystem.API.Application.Response;
 using DepotSystem.API.Controllers;
+using DepotSystem.Api.Common.Application;
 
 namespace EnterprisePatterns.Api.DepotOrders.Controllers
 {
@@ -57,6 +58,12 @@ namespace EnterprisePatterns.Api.DepotOrders.Controllers
         [HttpPost]
         public IActionResult CreateDepotOrder([FromBody] DepotOrderDto depotOrderDto)
         {
+            // Build the chain of responsibility
+            Logger logger, logger1, logger2;
+            logger = new ConsoleLogger(LogLevel.All);
+            logger1 = logger.SetNext(new EmailLogger(LogLevel.FunctionalMessage | LogLevel.FunctionalError));
+            logger2 = logger1.SetNext(new FileLogger(LogLevel.Warning | LogLevel.Error));
+
             bool uowStatus = false;
             try
             {
@@ -65,10 +72,18 @@ namespace EnterprisePatterns.Api.DepotOrders.Controllers
 
                 uowStatus = _unitOfWork.BeginTransaction();
                 var customer = _customerAssembler.FromDepotOrderDtoToCustomer(depotOrderDto);
+                // Handled by ConsoleLogger since the console has a loglevel of all
+                logger.Message("Verifying customer exists", LogLevel.Debug);
                 Customer searchCustomer = _customerRepository.GetByIdentificationNumber(depotOrderDto.CustomerIdentificationNumber);
+                logger.Message("Customer retrieved.", LogLevel.Info);
 
                 if (searchCustomer.Equals(null))
                 {
+                    // Handled by ConsoleLogger and FileLogger since filelogger implements Warning & Error
+                    logger.Message("Customer doesn't exist", LogLevel.Warning);
+                    logger.Message("Preventing NULL exception", LogLevel.Error);
+                    // Handled by ConsoleLogger and EmailLogger as it implements functional error
+                    logger.Message("Unable to Process Order ORD1 Dated D1 For Customer C1.", LogLevel.FunctionalError);
                     return StatusCode(StatusCodes.Status400BadRequest, _apiResponseHandler.AppErrorResponse("Customer doesn't exist"));
                 }
 
@@ -89,6 +104,8 @@ namespace EnterprisePatterns.Api.DepotOrders.Controllers
                 _unitOfWork.Commit(uowStatus);
 
                 var message = "DepotOrder created!";
+                // Handled by ConsoleLogger and EmailLogger
+                logger.Message(message, LogLevel.FunctionalMessage);
                 KipubitRabbitMQ.SendMessage(message);
                 return StatusCode(StatusCodes.Status201Created, new ApiStringResponseDto(message));
             }
