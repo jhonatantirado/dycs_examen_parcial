@@ -14,7 +14,6 @@ using DepotSystem.Api.Common.Application.Enum;
 using DepotSystem.Api.DepotOrders.Application.Validations;
 using DepotSystem.API.Application.Response;
 using DepotSystem.API.Controllers;
-using DepotSystem.Api.Common.Application;
 
 namespace EnterprisePatterns.Api.DepotOrders.Controllers
 {
@@ -32,7 +31,6 @@ namespace EnterprisePatterns.Api.DepotOrders.Controllers
 
         private readonly DepotOrderDtoValidator _depotOrderDtoValidator;
         private readonly ApiResponseHandler _apiResponseHandler;
-        private Logger logger, logger1, logger2;
 
         public DepotOrdersController(IUnitOfWork unitOfWork, 
             ICustomerRepository customerRepository,
@@ -53,11 +51,6 @@ namespace EnterprisePatterns.Api.DepotOrders.Controllers
             _depotOrderEquipmentAssembler = depotOrderEquipmentAssembler;
             _depotOrderDtoValidator = depotOrderDtoValidator;
             _apiResponseHandler = apiResponseHandler;
-
-            // Build the chain of responsibility
-            logger = new ConsoleLogger(LogLevel.All);
-            logger1 = logger.SetNext(new EmailLogger(LogLevel.FunctionalMessage | LogLevel.FunctionalError));
-            logger2 = logger1.SetNext(new FileLogger(LogLevel.Warning | LogLevel.Error));
         }
 
         [HttpPost]
@@ -76,7 +69,7 @@ namespace EnterprisePatterns.Api.DepotOrders.Controllers
                 Customer searchCustomer = _customerRepository.GetByIdentificationNumber(depotOrderDto.CustomerIdentificationNumber);
                 logger.Message("Customer retrieved.", LogLevel.Info);
 
-                if (searchCustomer.Equals(null))
+                if (searchCustomer == null)
                 {
                     // Handled by ConsoleLogger and FileLogger since filelogger implements Warning & Error
                     logger.Message("Customer doesn't exist", LogLevel.Warning);
