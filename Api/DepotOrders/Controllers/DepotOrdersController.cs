@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using EnterprisePatterns.Api.Common.Application.Dto;
 using EnterprisePatterns.Api.Customers.Application.Assembler;
-using Common.Application;
 using EnterprisePatterns.Api.DepotOrders.Application.Assembler;
 using EnterprisePatterns.Api.DepotOrders.Domain.Repository;
 using EnterprisePatterns.Api.DepotOrders.Application.Dto;
@@ -33,6 +32,7 @@ namespace EnterprisePatterns.Api.DepotOrders.Controllers
 
         private readonly DepotOrderDtoValidator _depotOrderDtoValidator;
         private readonly ApiResponseHandler _apiResponseHandler;
+        private Logger logger, logger1, logger2;
 
         public DepotOrdersController(IUnitOfWork unitOfWork, 
             ICustomerRepository customerRepository,
@@ -53,17 +53,16 @@ namespace EnterprisePatterns.Api.DepotOrders.Controllers
             _depotOrderEquipmentAssembler = depotOrderEquipmentAssembler;
             _depotOrderDtoValidator = depotOrderDtoValidator;
             _apiResponseHandler = apiResponseHandler;
+
+            // Build the chain of responsibility
+            logger = new ConsoleLogger(LogLevel.All);
+            logger1 = logger.SetNext(new EmailLogger(LogLevel.FunctionalMessage | LogLevel.FunctionalError));
+            logger2 = logger1.SetNext(new FileLogger(LogLevel.Warning | LogLevel.Error));
         }
 
         [HttpPost]
         public IActionResult CreateDepotOrder([FromBody] DepotOrderDto depotOrderDto)
         {
-            // Build the chain of responsibility
-            Logger logger, logger1, logger2;
-            logger = new ConsoleLogger(LogLevel.All);
-            logger1 = logger.SetNext(new EmailLogger(LogLevel.FunctionalMessage | LogLevel.FunctionalError));
-            logger2 = logger1.SetNext(new FileLogger(LogLevel.Warning | LogLevel.Error));
-
             bool uowStatus = false;
             try
             {
@@ -83,7 +82,7 @@ namespace EnterprisePatterns.Api.DepotOrders.Controllers
                     logger.Message("Customer doesn't exist", LogLevel.Warning);
                     logger.Message("Preventing NULL exception", LogLevel.Error);
                     // Handled by ConsoleLogger and EmailLogger as it implements functional error
-                    logger.Message("Unable to Process Order ORD1 Dated D1 For Customer C1.", LogLevel.FunctionalError);
+                    logger.Message("Business exception", LogLevel.FunctionalError);
                     return StatusCode(StatusCodes.Status400BadRequest, _apiResponseHandler.AppErrorResponse("Customer doesn't exist"));
                 }
 
@@ -113,6 +112,7 @@ namespace EnterprisePatterns.Api.DepotOrders.Controllers
             {
                 _unitOfWork.Rollback(uowStatus);
                 Console.WriteLine(ex.StackTrace);
+                logger.Message(ex.StackTrace, LogLevel.Error);
                 KipubitRabbitMQ.SendMessage(ex.StackTrace);
                 return BadRequest(_apiResponseHandler.AppErrorResponse(ex.Message));
             }
@@ -120,6 +120,7 @@ namespace EnterprisePatterns.Api.DepotOrders.Controllers
             {
                 _unitOfWork.Rollback(uowStatus);
                 Console.WriteLine(ex.StackTrace);
+                logger.Message(ex.StackTrace, LogLevel.Error);
                 var message = "Internal Server Error";
                 KipubitRabbitMQ.SendMessage(message);
                 return StatusCode(StatusCodes.Status500InternalServerError, _apiResponseHandler.AppErrorResponse(message));
